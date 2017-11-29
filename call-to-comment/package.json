@@ -4,6 +4,9 @@
   "description": "",
   "author": "Thinko <screenhole@thinko.com>",
   "private": true,
+  "now": {
+    "alias": "screenhole-svc-call-to-comment"
+  },
   "scripts": {
     "start": "node index.js",
     "deploy": "now --team screenhole"
