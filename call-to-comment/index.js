@@ -11,32 +11,66 @@ app.post('/voice', (request, response) => {
     // Use the Twilio Node.js SDK to build an XML response
     const twiml = new VoiceResponse();
 
-    /** helper function to set up a <Gather> */
-    function gather() {
-        const gatherNode = twiml.gather({ numDigits: 1 });
-        gatherNode.say('For sales, press 1. For support, press 2.');
+    const gather = twiml.gather({
+        numDigits: 5,
+        action: '/gather',
+    });
+    gather.say('Enter the calling code');
 
-        // If the user doesn't enter input, loop
-        twiml.redirect('/voice');
-    }
+    // If the user doesn't enter input, loop
+    twiml.redirect('/voice');
+
+    // Render the response as XML in reply to the webhook request
+    response.type('text/xml');
+    response.send(twiml.toString());
+});
+
+app.post('/record', (request, response) => {
+    const twiml = new VoiceResponse();
+
+    console.log(request.body.CallSid);
+    console.log(request.body.RecordingUrl);
+
+    // TODO: Delete recording
+
+    response.type('text/xml');
+    response.send(twiml.toString());
+});
+
+app.post('/transcribe', (request, response) => {
+    const twiml = new VoiceResponse();
+
+    console.log(request.body.CallSid);
+    console.log(request.body.RecordingUrl);
+    console.log(request.body.TranscriptionText);
+
+    // TODO: Delete transcription?
+
+    response.type('text/xml');
+    response.send(twiml.toString());
+});
+
+app.post('/gather', (request, response) => {
+    // Use the Twilio Node.js SDK to build an XML response
+    const twiml = new VoiceResponse();
 
     // If the user entered digits, process their request
     if (request.body.Digits) {
-        switch (request.body.Digits) {
-            case '1':
-                twiml.say('You selected sales. Good for you!');
-                break;
-            case '2':
-                twiml.say('You need support. We will help!');
-                break;
-            default:
-                twiml.say("Sorry, I don't understand that choice.").pause();
-                gather();
-                break;
-        }
+        console.log(request.body.CallSid);
+        console.log(request.body.Digits);
+
+        twiml.say('Leave your comment after the beep. Press any key or hang up when finished.');
+
+        twiml.record({
+            action: '/record',
+            transcribeCallback: '/transcribe',
+            transcribe: true,
+        });
+
+        twiml.hangup();
     } else {
-        // If no input was sent, use the <Gather> verb to collect user input
-        gather();
+        // If no input was sent, redirect to the /voice route
+        twiml.redirect('/voice');
     }
 
     // Render the response as XML in reply to the webhook request
@@ -47,5 +81,5 @@ app.post('/voice', (request, response) => {
 const PORT = process.env.PORT || 9000
 
 app.listen(PORT, () => {
-        console.log('Node app is running on port', PORT)
+    console.log('Node app is running on port', PORT)
 })
