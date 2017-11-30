@@ -1,11 +1,11 @@
 {
-  "name": "call-to-comment",
+  "name": "voice-memos",
   "version": "1.0.0",
   "description": "",
   "author": "Thinko <screenhole@thinko.com>",
   "private": true,
   "now": {
-    "alias": "screenhole-svc-call-to-comment"
+    "alias": "screenhole-svc-voice-memos"
   },
   "scripts": {
     "start": "node index.js",
