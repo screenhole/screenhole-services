@@ -25,31 +25,6 @@ app.post('/voice', (request, response) => {
     response.send(twiml.toString());
 });
 
-app.post('/record', (request, response) => {
-    const twiml = new VoiceResponse();
-
-    console.log(request.body.CallSid);
-    console.log(request.body.RecordingUrl);
-
-    // TODO: Delete recording
-
-    response.type('text/xml');
-    response.send(twiml.toString());
-});
-
-app.post('/transcribe', (request, response) => {
-    const twiml = new VoiceResponse();
-
-    console.log(request.body.CallSid);
-    console.log(request.body.RecordingUrl);
-    console.log(request.body.TranscriptionText);
-
-    // TODO: Delete transcription?
-
-    response.type('text/xml');
-    response.send(twiml.toString());
-});
-
 app.post('/gather', (request, response) => {
     // Use the Twilio Node.js SDK to build an XML response
     const twiml = new VoiceResponse();
@@ -74,6 +49,31 @@ app.post('/gather', (request, response) => {
     }
 
     // Render the response as XML in reply to the webhook request
+    response.type('text/xml');
+    response.send(twiml.toString());
+});
+
+app.post('/record', (request, response) => {
+    const twiml = new VoiceResponse();
+
+    console.log(request.body.CallSid);
+    console.log(request.body.RecordingUrl);
+
+    // TODO: Delete recording
+
+    response.type('text/xml');
+    response.send(twiml.toString());
+});
+
+app.post('/transcribe', (request, response) => {
+    const twiml = new VoiceResponse();
+
+    console.log(request.body.CallSid);
+    console.log(request.body.RecordingUrl);
+    console.log(request.body.TranscriptionText);
+
+    // TODO: Delete transcription?
+
     response.type('text/xml');
     response.send(twiml.toString());
 });

@@ -5,6 +5,11 @@
   "author": "Thinko <screenhole@thinko.com>",
   "private": true,
   "now": {
+    "env": {
+      "API_BASE": "https://api.screenhole.net/",
+      "API_BASE_LOCAL": "https://screenhole-api.ngrok.io/",
+      "API_BASE_STAGING": "https://staging-api.screenhole.net/"
+    },
     "alias": "screenhole-svc-voice-memos"
   },
   "scripts": {
