@@ -6,10 +6,7 @@
   "private": true,
   "now": {
     "env": {
-      "NODE_ENV": "production",
-      "API_BASE": "https://api.screenhole.net/",
-      "API_BASE_LOCAL": "https://screenhole-api.ngrok.io/",
-      "API_BASE_STAGING": "https://staging-api.screenhole.net/"
+      "NODE_ENV": "production"
     },
     "alias": "screenhole-svc-voice-memos"
   },
@@ -23,6 +20,7 @@
     "express": "^4.16.2",
     "micro": "^9.0.2",
     "request": "^2.83.0",
+    "request-promise": "^4.2.2",
     "twilio": "^3.10.0",
     "urlencoded-body-parser": "^2.0.1"
   },

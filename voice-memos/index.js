@@ -1,11 +1,14 @@
 const { send } = require('micro');
 const parse = require('urlencoded-body-parser');
 
-const request = require('request')
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
 
 // TODO: configure
-const API_BASE = process.env.API_BASE;
+const request = require('request-promise').defaults({
+    simple: true,
+    baseUrl: process.env.API_BASE,
+    url: '/svc/memo/voice',
+});
 
 function xml(res) {
     if (!res.getHeader('Content-Type')) {
@@ -18,13 +21,7 @@ function xml(res) {
 module.exports = async function(req, res) {
     const body = await parse(req)
 
-    // const data = await request({
-    //     baseUrl: API_BASE,
-    //     uri: '/shots',
-    //     json: true
-    // })
-
-    console.log(body);
+    console.log(req.url, body);
 
     try {
         const twiml = new VoiceResponse();
@@ -49,29 +46,62 @@ module.exports = async function(req, res) {
                 if (body.Digits) {
                     const env = body.Digits.charAt(5);
                     
-                    // initiate voice recording
-                    twiml.say('Leave your comment after the beep. When finished, press any key or hang up');
+                    request.post({ form: {
+                        call_sid: body.CallSid,
+                        calling_code: body.Digits,
+                    }}).then(function(data){
+                        console.log('/gather success: ', data);
 
-                    twiml.record({
-                        action: '/record',
-                        transcribeCallback: '/transcribe',
-                        transcribe: true,
+                        // initiate voice recording
+                        twiml.say('Leave your comment after the beep. When finished, press any key or hang up');
+
+                        twiml.record({
+                            action: '/record',
+                            transcribeCallback: '/transcribe',
+                            transcribe: true,
+                        });
+                    }).catch(function(err){
+                        console.log('/gather error: ', err.error);
+                        twiml.say("Sorry, something went wrong. Try again later!");
+                    }).finally(function(){
+                        twiml.hangup();
+                        send(xml(res), 200, twiml.toString());
                     });
-
-                    twiml.hangup();
                 } else {
                     twiml.redirect('/voice');
                 }
 
-                send(xml(res), 200, twiml.toString());
                 break;
 
             case '/record':
-                send(xml(res), 200, twiml.toString());
+                request.post({ form: {
+                    call_sid: body.CallSid,
+                    recording_url: body.RecordingUrl,
+                }}).then(function(data){
+                    console.log('/record success: ', data);
+                }).catch(function(err){
+                    console.log('/record error: ', err.error);
+                }).finally(function(){
+                    twiml.hangup();
+                    send(xml(res), 200, twiml.toString());
+                });
+
                 break;
 
             case '/transcribe':
-                send(xml(res), 200, twiml.toString());
+                request.post({ form: {
+                    call_sid: body.CallSid,
+                    recording_url: body.RecordingUrl,
+                    transcription_text: body.TranscriptionText,
+                }}).then(function(data){
+                    console.log('/transcribe success: ', data);
+                }).catch(function(err){
+                    console.log('/transcribe error: ', err.error);
+                }).finally(function(){
+                    twiml.hangup();
+                    send(xml(res), 200, twiml.toString());
+                });
+
                 break;
 
             default:
