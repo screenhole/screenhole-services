@@ -1,27 +1,34 @@
 {
-  "name": "voice-memos",
+  "name": "screenhole-svc-voice-memos",
   "version": "1.0.0",
   "description": "",
   "author": "Thinko <screenhole@thinko.com>",
   "private": true,
   "now": {
     "env": {
+      "NODE_ENV": "production",
       "API_BASE": "https://api.screenhole.net/",
       "API_BASE_LOCAL": "https://screenhole-api.ngrok.io/",
       "API_BASE_STAGING": "https://staging-api.screenhole.net/"
     },
     "alias": "screenhole-svc-voice-memos"
   },
+  "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "micro",
+    "dev": "micro-dev",
     "deploy": "now --team screenhole"
   },
   "dependencies": {
-    "body-parser": "^1.18.2",
     "express": "^4.16.2",
-    "twilio": "^3.10.0"
+    "micro": "^9.0.2",
+    "request": "^2.83.0",
+    "twilio": "^3.10.0",
+    "urlencoded-body-parser": "^2.0.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "micro-dev": "^1.4.0"
+  },
   "engines": {
     "node": "8.9.1",
     "npm": "5.5.1"

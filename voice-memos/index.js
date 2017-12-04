@@ -1,102 +1,90 @@
-const express = require('express');
+const { send } = require('micro');
+const parse = require('urlencoded-body-parser');
+
+const request = require('request')
 const VoiceResponse = require('twilio').twiml.VoiceResponse;
-const urlencoded = require('body-parser').urlencoded;
 
-const app = express();
+// TODO: configure
+const API_BASE = process.env.API_BASE;
 
-// Parse incoming POST params with Express middleware
-app.use(urlencoded({ extended: false }));
-
-app.post('/voice', (request, response) => {
-    const twiml = new VoiceResponse();
-
-    // gather calling_code from user
-    const gather = twiml.gather({
-        numDigits: 6,
-        action: '/gather',
-    });
-    gather.say('Enter the calling code');
-
-    // If the user doesn't enter input, loop
-    twiml.redirect('/voice');
-
-    response.type('text/xml');
-    response.send(twiml.toString());
-});
-
-app.post('/gather', (request, response) => {
-    const twiml = new VoiceResponse();
-
-    // If the user entered digits, process their request
-    if (request.body.Digits) {
-        const env = request.body.Digits.charAt(5);
-        var API_BASE;
-
-        switch (env) {
-            case 1:
-                API_BASE = process.env.API_BASE_LOCAL;
-                break;
-            case 2:
-                API_BASE = process.env.API_BASE_STAGING;
-                break;
-            default:
-                API_BASE = process.env.API_BASE;
-                break;
-        }
-
-        // attach CallSid to calling_code
-        console.log({
-            call_sid: request.body.CallSid,
-            calling_code: request.body.Digits.substring(0, 4),
-        })
-
-        // initiate voice recording
-        twiml.say('Leave your comment after the beep. When finished, press any key or hang up');
-
-        twiml.record({
-            action: '/record',
-            transcribeCallback: '/transcribe',
-            transcribe: true,
-        });
-
-        twiml.hangup();
-    } else {
-        twiml.redirect('/voice');
+function xml(res) {
+    if (!res.getHeader('Content-Type')) {
+        res.setHeader('Content-Type', 'text/xml')
     }
 
-    response.type('text/xml');
-    response.send(twiml.toString());
-});
+    return res;
+}
 
-app.post('/record', (request, response) => {
-    const twiml = new VoiceResponse();
+module.exports = async function(req, res) {
+    const body = await parse(req)
 
-    // save recording
-    console.log({
-        call_sid: request.body.CallSid,
-        recording_url: request.body.RecordingUrl,
-    })
+    // const data = await request({
+    //     baseUrl: API_BASE,
+    //     uri: '/shots',
+    //     json: true
+    // })
 
-    response.type('text/xml');
-    response.send(twiml.toString());
-});
+    console.log(body);
 
-app.post('/transcribe', (request, response) => {
-    const twiml = new VoiceResponse();
+    try {
+        const twiml = new VoiceResponse();
 
-    // save transcript
-    console.log({
-        call_sid: request.body.CallSid,
-        recording_url: request.body.RecordingUrl,
-        transcription_text: request.body.TranscriptionText,
-    })
+        switch (req.url) {
+            case '/voice':
+                // gather calling_code from user
+                const gather = twiml.gather({
+                    numDigits: 5,
+                    action: '/gather',
+                });
+                gather.say('Enter the calling code');
 
-    response.type('text/xml');
-    response.send(twiml.toString());
-});
+                // If the user doesn't enter input, loop
+                twiml.redirect('/voice');
 
-const PORT = process.env.PORT || 9000
+                send(xml(res), 200, twiml.toString());
+                break;
 
-app.listen(PORT, () => {
-    console.log('Node app is running on port', PORT)
-})
+            case '/gather':
+                // If the user entered digits, process their request
+                if (body.Digits) {
+                    const env = body.Digits.charAt(5);
+                    
+                    // initiate voice recording
+                    twiml.say('Leave your comment after the beep. When finished, press any key or hang up');
+
+                    twiml.record({
+                        action: '/record',
+                        transcribeCallback: '/transcribe',
+                        transcribe: true,
+                    });
+
+                    twiml.hangup();
+                } else {
+                    twiml.redirect('/voice');
+                }
+
+                send(xml(res), 200, twiml.toString());
+                break;
+
+            case '/record':
+                send(xml(res), 200, twiml.toString());
+                break;
+
+            case '/transcribe':
+                send(xml(res), 200, twiml.toString());
+                break;
+
+            default:
+                send(res, 200, ';)');
+                break;
+        }
+    } catch (err) {
+        var msg = { error: true, message: err.message }
+
+        if (process.env.NODE_ENV !== 'production' && err.stack) {
+            msg.stack = err.stack;
+        }
+
+        send(res, err.statusCode || 500, msg);
+    }
+}
