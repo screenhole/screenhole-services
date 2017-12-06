@@ -33,7 +33,7 @@ module.exports = async function(req, res) {
                     numDigits: 5,
                     action: '/gather',
                 });
-                gather.say('Enter the calling code');
+                gather.say('Hello! This is Mister Hole. Please enter your calling code.');
 
                 // If the user doesn't enter input, loop
                 twiml.redirect('/voice');
@@ -53,7 +53,7 @@ module.exports = async function(req, res) {
                         console.log('/gather success: ', data);
 
                         // initiate voice recording
-                        twiml.say('Leave your comment after the beep. When finished, press any key or hang up');
+                        twiml.say("Okie dokie. Leave your memo after the beep. Hang up when you're done");
 
                         twiml.record({
                             action: '/record',
